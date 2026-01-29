@@ -26,7 +26,16 @@
       "raspi5-rc522": "rc522.js"
     }
   },
-  "author": "Marc (scwm)",
+  "author": "Marc S. (scwm)",
+    "homepage": "https://github.com/marcschweitzer/node-red-contrib-raspi5-rc522#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcschweitzer/node-red-contrib-raspi5-rc522.git"
+  },
+  "bugs": {
+    "url": "https://github.com/marcschweitzer/node-red-contrib-raspi5-rc522/issues"
+  },
+
   "engines": {
     "node": ">=18"
   },
