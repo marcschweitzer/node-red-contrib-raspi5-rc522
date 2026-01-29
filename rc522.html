@@ -1,0 +1,190 @@
+<!-- node-red-contrib-raspi5-rc522/rc522.html -->
+
+<script type="text/x-red" data-template-name="raspi5-rc522">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="raspi5-rc522">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-bus"><i class="fa fa-random"></i> SPI Bus</label>
+    <select id="node-input-bus">
+      <option value="0">SPI0 (bus 0)</option>
+      <option value="1">SPI1 (bus 1)</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-dev"><i class="fa fa-bullseye"></i> Device (CS)</label>
+    <input type="number" id="node-input-dev" min="0" max="2">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-speedHz"><i class="fa fa-tachometer"></i> SPI speed (Hz)</label>
+    <input type="number" id="node-input-speedHz" min="100000" step="100000">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-mode"><i class="fa fa-cog"></i> Mode</label>
+    <select id="node-input-mode">
+      <option value="uid">UID</option>
+      <option value="read">READ</option>
+      <option value="write">WRITE</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-auto"><i class="fa fa-refresh"></i> Auto poll</label>
+    <input type="checkbox" id="node-input-auto" style="width:auto;">
+    <span style="margin-left:10px;">(Wenn aus: nur per Input Trigger)</span>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-pollMs"><i class="fa fa-clock-o"></i> Poll ms</label>
+    <input type="number" id="node-input-pollMs" min="80" step="10">
+  </div>
+
+<div class="form-row">
+    <label for="node-input-emitRemoved"><i class="fa fa-sign-out"></i> Present/Removed</label>
+    <input type="checkbox" id="node-input-emitRemoved" style="width:auto;">
+    <span style="margin-left:10px;">Sende <code>topic=present</code> / <code>topic=removed</code></span>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-removedMs"><i class="fa fa-hourglass-end"></i> Removed timeout (ms)</label>
+    <input type="number" id="node-input-removedMs" min="100" step="50">
+  </div>
+
+  <div class="form-row rc522-row-block">
+    <label for="node-input-block"><i class="fa fa-th-large"></i> Block</label>
+    <input type="number" id="node-input-block" min="0" max="63">
+  </div>
+
+  <div class="form-row rc522-row-key">
+    <label for="node-input-keyA"><i class="fa fa-key"></i> Key A (hex, 6 bytes)</label>
+    <input type="text" id="node-input-keyA" placeholder="FFFFFFFFFFFF">
+  </div>
+
+  <div class="form-row rc522-row-data">
+    <label for="node-input-data"><i class="fa fa-pencil"></i> Data (hex, 16 bytes)</label>
+    <input type="text" id="node-input-data" placeholder="112233...">
+  </div>
+
+  <div class="form-row rc522-row-verify">
+    <label for="node-input-verify"><i class="fa fa-check"></i> Verify</label>
+    <input type="checkbox" id="node-input-verify" style="width:auto;">
+    <span style="margin-left:10px;">(nach WRITE nochmal READ)</span>
+  </div>
+
+  <hr>
+
+  <div class="form-row">
+    <label><i class="fa fa-plug"></i> Verdrahtung</label>
+    <div id="rc522-pins" style="padding:8px; border:1px solid #ddd; border-radius:6px; background:#fafafa;"></div>
+  </div>
+
+  <div class="form-tips">
+    <b>Trigger (Input):</b><br>
+    <code>msg.action</code> = <code>"uid"</code> | <code>"read"</code> | <code>"write"</code><br>
+    Optional: <code>msg.block</code>, <code>msg.keyA</code>, <code>msg.data</code> (hex).<br>
+    Output: <code>topic=present</code>, <code>topic=removed</code>, <code>topic=read</code>, <code>topic=write</code> (und bei Trigger: <code>topic=uid</code>).
+  </div>
+</script>
+
+<script type="text/x-red" data-help-name="raspi5-rc522">
+  <p>RC522 / MFRC522 Node für Raspberry Pi 5 (pure JS über <code>spi-device</code>).</p>
+  <h3>Modes</h3>
+  <ul>
+    <li><b>UID</b>: sendet UID bei Kartenwechsel</li>
+    <li><b>READ</b>: auth + read Block</li>
+    <li><b>WRITE</b>: auth + write Block (2-phase ACK), optional verify</li>
+  </ul>
+  <h3>Trigger</h3>
+  <p>Wenn <b>Auto poll</b> aus ist, kannst du per Input triggern:</p>
+  <pre>
+{ "action":"uid" }
+{ "action":"read", "block":8, "keyA":"FFFFFFFFFFFF" }
+{ "action":"write", "block":8, "keyA":"FFFFFFFFFFFF", "data":"1122..." }
+  </pre>
+  <h3>Safety</h3>
+  <p>Write wird verweigert für Block 0 und Trailer-Blöcke (3,7,11,...).</p>
+</script>
+
+<script type="text/javascript">
+(function() {
+  function pinsFor(bus, dev) {
+    bus = String(bus);
+    dev = String(dev);
+    if (bus === "0") {
+      return `
+<b>SPI0 (Bus 0)</b><br>
+SCK: GPIO11 (Pin 23)<br>
+MOSI: GPIO10 (Pin 19)<br>
+MISO: GPIO9 (Pin 21)<br>
+CE0: GPIO8 (Pin 24) → RC522 SDA/SS (dev=0)<br>
+CE1: GPIO7 (Pin 26) → RC522 SDA/SS (dev=1)<br>
+3.3V: Pin 1<br>
+GND: Pin 6<br>
+RST: optional (z.B. GPIO25 Pin 22)
+`;
+    }
+    return `
+<b>SPI1 (Bus 1) mit dtoverlay=spi1-3cs</b><br>
+SCK: GPIO21<br>
+MOSI: GPIO20<br>
+MISO: GPIO19<br>
+CE0: GPIO18 → RC522 SDA/SS (dev=0)<br>
+CE1/CE2: je nach Overlay → dev=1/2<br>
+3.3V: Pin 1<br>
+GND: Pin 6<br>
+RST: optional
+`;
+  }
+
+  function updatePins() {
+    var bus = $("#node-input-bus").val();
+    var dev = $("#node-input-dev").val();
+    $("#rc522-pins").html(pinsFor(bus, dev));
+  }
+
+  RED.nodes.registerType('raspi5-rc522', {
+    category: 'raspi5',
+    color: '#c7e9c0',
+    defaults: {
+      name: {value:""},
+      bus: {value:"1", required:true},
+      dev: {value:"0", required:true},
+      speedHz: {value:"1000000", required:true},
+      mode: {value:"uid", required:true},
+      auto: {value:true},
+      pollMs: {value:"250"},
+      block: {value:"8"},
+      keyA: {value:"FFFFFFFFFFFF"},
+      data: {value:"11223344556677889900aabbccddeeff"},
+      verify: {value:true},
+      emitRemoved: {value:true},
+      removedMs: {value:"500"}
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-credit-card",
+    label: function() { return this.name || "raspi5-rc522"; },
+    oneditprepare: function() {
+      updatePins();
+      $("#node-input-bus").on("change", updatePins);
+      $("#node-input-dev").on("change", updatePins);
+
+      function toggleByMode() {
+        var mode = $("#node-input-mode").val();
+        var showRW = (mode === "read" || mode === "write");
+        $(".rc522-row-block").toggle(showRW);
+        $(".rc522-row-key").toggle(showRW);
+        $(".rc522-row-data").toggle(mode === "write");
+        $(".rc522-row-verify").toggle(mode === "write");
+      }
+      $("#node-input-mode").on("change", toggleByMode);
+      toggleByMode();
+    }
+  });
+})();
+</script>
