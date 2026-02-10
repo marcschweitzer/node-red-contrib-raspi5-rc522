@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-raspi5-rc522",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Raspberry Pi 5 RC522 (MFRC522) pure JavaScript Node-RED node with SPI0/SPI1, UID/READ/WRITE and present/removed events",
   "keywords": [
     "node-red",
@@ -23,7 +23,7 @@
   },
   "node-red": {
     "nodes": {
-      "raspi5-rc522": "rc522.js"
+      "raspi5-rc522": "nodes/rc522.js"
     }
   },
   "author": "Marc S. (scwm)",
@@ -40,12 +40,9 @@
     "node": ">=18"
   },
   "files": [
-    "rc522.js",
-    "rc522.html",
+    "nodes/",
     "lib/",
     "README.md",
-    "LICENSE",
-    "examples/",
-    "CHANGELOG.md"
+    "LICENSE"
   ]
 }
