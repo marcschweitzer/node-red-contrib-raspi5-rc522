@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-raspi5-rc522",
-  "version": "1.1.1",
+  "version": "1.1.4",
   "description": "Raspberry Pi 5 RC522 (MFRC522) pure JavaScript Node-RED node with SPI0/SPI1, UID/READ/WRITE and present/removed events",
   "keywords": [
     "node-red",
