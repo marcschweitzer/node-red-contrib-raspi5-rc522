@@ -16,7 +16,7 @@
  *   - topic: "removed" when the previously present card disappears
  */
 module.exports = function(RED) {
-  const { MFRC522, ensure16Bytes } = require("./lib/mfrc522");
+  const { MFRC522, ensure16Bytes } = require("../lib/mfrc522");
 
   function parseIntSafe(v, dflt) {
     const n = Number(v);
