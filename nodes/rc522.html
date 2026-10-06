@@ -36,7 +36,7 @@
   <div class="form-row">
     <label for="node-input-auto"><i class="fa fa-refresh"></i> Auto poll</label>
     <input type="checkbox" id="node-input-auto" style="width:auto;">
-    <span style="margin-left:10px;">(Wenn aus: nur per Input Trigger)</span>
+    <span style="margin-left:10px;">(if off: only triggered by input)</span>
   </div>
 
   <div class="form-row">
@@ -47,7 +47,7 @@
 <div class="form-row">
     <label for="node-input-emitRemoved"><i class="fa fa-sign-out"></i> Present/Removed</label>
     <input type="checkbox" id="node-input-emitRemoved" style="width:auto;">
-    <span style="margin-left:10px;">Sende <code>topic=present</code> / <code>topic=removed</code></span>
+    <span style="margin-left:10px;">Send <code>topic=present</code> / <code>topic=removed</code></span>
   </div>
 
   <div class="form-row">
@@ -73,13 +73,13 @@
   <div class="form-row rc522-row-verify">
     <label for="node-input-verify"><i class="fa fa-check"></i> Verify</label>
     <input type="checkbox" id="node-input-verify" style="width:auto;">
-    <span style="margin-left:10px;">(nach WRITE nochmal READ)</span>
+    <span style="margin-left:10px;">(READ again after WRITE)</span>
   </div>
 
   <hr>
 
   <div class="form-row">
-    <label><i class="fa fa-plug"></i> Verdrahtung</label>
+    <label><i class="fa fa-plug"></i> Wiring</label>
     <div id="rc522-pins" style="padding:8px; border:1px solid #ddd; border-radius:6px; background:#fafafa;"></div>
   </div>
 
@@ -87,27 +87,27 @@
     <b>Trigger (Input):</b><br>
     <code>msg.action</code> = <code>"uid"</code> | <code>"read"</code> | <code>"write"</code><br>
     Optional: <code>msg.block</code>, <code>msg.keyA</code>, <code>msg.data</code> (hex).<br>
-    Output: <code>topic=present</code>, <code>topic=removed</code>, <code>topic=read</code>, <code>topic=write</code> (und bei Trigger: <code>topic=uid</code>).
+    Output: <code>topic=present</code>, <code>topic=removed</code>, <code>topic=read</code>, <code>topic=write</code> (and on trigger: <code>topic=uid</code>).
   </div>
 </script>
 
 <script type="text/x-red" data-help-name="raspi5-rc522">
-  <p>RC522 / MFRC522 Node für Raspberry Pi 5 (pure JS über <code>spi-device</code>).</p>
+  <p>RC522 / MFRC522 Node for Raspberry Pi 5 (pure JS via <code>spi-device</code>).</p>
   <h3>Modes</h3>
   <ul>
-    <li><b>UID</b>: sendet UID bei Kartenwechsel</li>
+    <li><b>UID</b>: sends UID when the card changes</li>
     <li><b>READ</b>: auth + read Block</li>
     <li><b>WRITE</b>: auth + write Block (2-phase ACK), optional verify</li>
   </ul>
   <h3>Trigger</h3>
-  <p>Wenn <b>Auto poll</b> aus ist, kannst du per Input triggern:</p>
+  <p>If <b>Auto poll</b> is off, trigger via input:</p>
   <pre>
 { "action":"uid" }
 { "action":"read", "block":8, "keyA":"FFFFFFFFFFFF" }
 { "action":"write", "block":8, "keyA":"FFFFFFFFFFFF", "data":"1122..." }
   </pre>
   <h3>Safety</h3>
-  <p>Write wird verweigert für Block 0 und Trailer-Blöcke (3,7,11,...).</p>
+  <p>Write is refused for block 0 and trailer blocks (3,7,11,...).</p>
 </script>
 
 <script type="text/javascript">
@@ -125,16 +125,16 @@ CE0: GPIO8 (Pin 24) → RC522 SDA/SS (dev=0)<br>
 CE1: GPIO7 (Pin 26) → RC522 SDA/SS (dev=1)<br>
 3.3V: Pin 1<br>
 GND: Pin 6<br>
-RST: optional (z.B. GPIO25 Pin 22)
+RST: optional (e.g. GPIO25 Pin 22)
 `;
     }
     return `
-<b>SPI1 (Bus 1) mit dtoverlay=spi1-3cs</b><br>
+<b>SPI1 (Bus 1) with dtoverlay=spi1-3cs</b><br>
 SCK: GPIO21<br>
 MOSI: GPIO20<br>
 MISO: GPIO19<br>
 CE0: GPIO18 → RC522 SDA/SS (dev=0)<br>
-CE1/CE2: je nach Overlay → dev=1/2<br>
+CE1/CE2: depending on overlay → dev=1/2<br>
 3.3V: Pin 1<br>
 GND: Pin 6<br>
 RST: optional

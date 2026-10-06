@@ -165,6 +165,23 @@ sudo usermod -aG spi $USER
 
 Re-login required.
 
+
+### Native build blocked (`spi-device` / `install-scripts` warning)
+
+Newer npm versions do not run install scripts until they are approved.  
+If the install shows `npm warn install-scripts ... spi-device`, the SPI driver was **not compiled**
+(error in Node-RED: `Cannot find module ... spi.node`).
+
+Fix:
+```bash
+cd ~/.node-red
+npm install-scripts approve spi-device
+npm rebuild spi-device
+ls node_modules/spi-device/build/Release/      # must show spi.node
+sudo systemctl restart nodered
+```
+If the rebuild fails with a `gyp` / `make` error: `sudo apt install build-essential`.
+
 ---
 
 ## License
